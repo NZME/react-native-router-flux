@@ -438,7 +438,19 @@ function createWrapper(Component, wrapBy, store: NavigationStore) {
 
   // if component is statless function, ref is not supported
   function StatelessWrapped({ navigation, ...props }) {
-    return <Component {...props} navigation={navigation} {...extendProps(navigation.state.params, store)} name={navigation.state.routeName} />;
+    // Hax Fix
+    onRef = (ref) => {
+      this.ref = ref;
+
+      if (this.ref && navigation && navigation.state && navigation.state.routeName) {
+        store.addRef(originalRouteName(navigation.state.routeName), this.ref);
+      }
+      if (this.ref && this.ref.onEnter) {
+        this.ref.onEnter(navigation && navigation.state);
+      }
+    }
+
+    return <Component ref={onRef} {...props} navigation={navigation} {...extendProps(navigation.state.params, store)} name={navigation.state.routeName} />;
   }
   StatelessWrapped.propTypes = {
     navigation: PropTypes.shape().isRequired,
